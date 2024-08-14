@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 API_URL = 'http://localhost:3000'
 ADDRESS = 'sf-host-test.play.minekube.net'
 PORT = 25565
-EMAIL = 'yetanotherdingus@gmail.com'
+EMAIL = 'get your own account neeeeeeeeeeeeeeeeeeeeeeeeeerd'
 AUTH = 'microsoft'
 
 # Constants
@@ -33,7 +33,7 @@ class QNetwork(nn.Module):
         super(QNetwork, self).__init__()
         self.fc1 = nn.Linear(EXPECTED_STATE_LENGTH, 32896)
         self.fc2 = nn.Linear(32896, 32896)
-        self.fc3 = nn.Linear(32896, 6)  # Number of actions
+        self.fc3 = nn.Linear(32896, 6)  # Number of actions, increase this number if you give the bot more abilities
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
@@ -119,6 +119,8 @@ def perform_action(action):
         response = safe_request('POST', f'{API_URL}/attack')
         success = response and response.status_code == 200
         print(f'Attack action: {success}, Response: {response.text if response else "No response"}')
+
+    # bot really needs a large number of functions, any proposed ideas for how to do this without making this script 10^99 lines long will be appreciated.
         
 
 
@@ -161,7 +163,7 @@ last_log_time = time.time()
 def log_status_and_inventory():
     global last_log_time
     current_time = time.time()
-    if current_time - last_log_time >= 10:  # Adjust this interval as needed
+    if current_time - last_log_time >= 10:  # Adjust for how long between the information available to the bot is refreshed.
         status = get_status()
         inventory = get_inventory()
         print(f"Fetched status: {status}")
@@ -174,7 +176,7 @@ def choose_action(state):
     state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
     with torch.no_grad():
         q_values = model(state_tensor)
-    if random.random() < EPSILON:
+    if random.random() < EPSILON: # Exploration.
         action = random.randint(0, 4)  # Random action (0 to 4)
     else:
         action = torch.argmax(q_values).item()
@@ -235,7 +237,7 @@ def main():
     last_retraining_time = time.time()
 
     while True:
-        log_status_and_inventory()  # Log status less frequently
+        log_status_and_inventory()
 
         status = get_status()
         if not status:
@@ -310,11 +312,13 @@ def calculate_reward(success, action, inventory):
                 else:
                     print(f'Error fetching block data: {response.text if response else "No response"}')
                     return 0
-                
-    # Penalty for being in water
-    for block in blocks:
-        if block['name'] == 'water':
-            reward -= 1
+
+# vvv Please fix!!!! vvv
+    
+#    # Penalty for being in water
+#    for block in blocks:
+#        if block['name'] == 'water':
+#            reward -= 1
 
     if action == 4:  # Use Item action
         if inventory:
@@ -330,7 +334,7 @@ def calculate_reward(success, action, inventory):
     
     # Large penalty for dying
     if not success:
-        reward -= 10
+        reward -= 100
 
     # Penalty for losing health
     if success and action in {0, 1, 2, 3}:
@@ -363,11 +367,6 @@ def calculate_reward(success, action, inventory):
             reward += 0.5
         else:
             reward -= 0.01
-
-    # Penalty for getting close to lava
-    for block in blocks:
-        if block['name'] == 'lava':
-            reward -= 1
 
     # Medium penalty for standing still
     if action == 4:
@@ -402,23 +401,4 @@ def calculate_reward(success, action, inventory):
     return reward
 
 if __name__ == "__main__":
-
-    # main()
-
-    # Test block data function for reward calculation
-    response = safe_request('GET', f'{API_URL}/block', params={'x': -2, 'y': 0, 'z': -2})
-
-    # same 5 block radius around the player
-    blocks = []
-
-    for i in range(-2, 3):
-        for j in range(-2, 3):
-            for k in range(-2, 3):
-                response = safe_request('GET', f'{API_URL}/block', params={'x': 0 + i, 'y': 0 + j, 'z': 0 + k})
-                if response and response.status_code == 200:
-                    blocks.append(response.json())
-                else:
-                    print(f'Error fetching block data: {response.text if response else "No response"}')
-                    break
-
-    print(blocks)
+    main()
