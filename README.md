@@ -37,4 +37,4 @@ pip3 install pytorch numpy matplotlib
 # Credits:
 Main developer, YetAnotherNotHacking
 
-Training Assistant/Debugger - therpro
+Training Assistant/Debugger - therpro (https://github.com/therpro)
